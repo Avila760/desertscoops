@@ -815,7 +815,15 @@
       document.documentElement.setAttribute('data-theme', t);
     })();
 
-    window.addEventListener('DOMContentLoaded', function() {
+    // closeMenu must be global so onclick="closeMenu()" in HTML works
+    function closeMenu() {
+      var mobileMenu = document.getElementById('mobileMenu');
+      var hamburger  = document.getElementById('hamburger');
+      if (mobileMenu) mobileMenu.classList.remove('open');
+      if (hamburger)  hamburger.classList.remove('open');
+    }
+
+    function initPage() {
 
       // ── THEME TOGGLE ──
       var btn  = document.getElementById('themeToggle');
@@ -823,39 +831,40 @@
 
       function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        knob.textContent = theme === 'dark' ? '🌙' : '☀️';
+        if (knob) knob.textContent = theme === 'dark' ? '🌙' : '☀️';
         try { localStorage.setItem('ds-theme', theme); } catch(e) {}
       }
 
-      // Set knob icon on load
       applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 
-      btn.addEventListener('click', function() {
-        var cur = document.documentElement.getAttribute('data-theme');
-        applyTheme(cur === 'dark' ? 'light' : 'dark');
-      });
+      if (btn) {
+        btn.addEventListener('click', function() {
+          var cur = document.documentElement.getAttribute('data-theme');
+          applyTheme(cur === 'dark' ? 'light' : 'dark');
+        });
+      }
 
       // ── HAMBURGER ──
       var hamburger  = document.getElementById('hamburger');
       var mobileMenu = document.getElementById('mobileMenu');
 
-      hamburger.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var isOpen = mobileMenu.classList.toggle('open');
-        hamburger.classList.toggle('open', isOpen);
-      });
+      if (hamburger && mobileMenu) {
+        hamburger.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var isOpen = mobileMenu.classList.toggle('open');
+          hamburger.classList.toggle('open', isOpen);
+        });
 
-      document.addEventListener('click', function(e) {
-        if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
-          mobileMenu.classList.remove('open');
-          hamburger.classList.remove('open');
-        }
-      });
+        document.addEventListener('click', function(e) {
+          if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
+            closeMenu();
+          }
+        });
 
-      window.addEventListener('scroll', function() {
-        mobileMenu.classList.remove('open');
-        hamburger.classList.remove('open');
-      }, { passive: true });
+        window.addEventListener('scroll', function() {
+          closeMenu();
+        }, { passive: true });
+      }
 
       // ── CONTACT FORM ──
       var formBtn = document.getElementById('formSubmit');
@@ -930,15 +939,33 @@
             alert('Something went wrong. Please try again or call us directly.');
           });
 
-          // Reset after 60 seconds
+          // Reset after 10 seconds
           setTimeout(function() {
-            // Reset button
+            var successMsg = document.getElementById('successMsg');
             formBtn.disabled = false;
             formBtn.textContent = 'Send My Request 🐾';
             formBtn.style.background = '';
             formBtn.style.borderColor = '';
             formBtn.style.color = '';
-            // Hide success message
-            successMsg.style.display = 'none';
-            // Clear form fields
-            var ids = ['fname','lname','em
+            if (successMsg) successMsg.style.display = 'none';
+            ['fname','lname','email','phone','city','dogs','service','message'].forEach(function(id) {
+              var el = document.getElementById(id);
+              if (el) el.value = '';
+            });
+          }, 10000);
+
+        });
+      }
+
+    } // end initPage
+
+    // Run initPage reliably whether DOM is ready or not
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPage);
+    } else {
+      initPage();
+    }
+
+  </script>
+</body>
+</html>
