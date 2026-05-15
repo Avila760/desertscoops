@@ -12,6 +12,7 @@ export async function onRequestPost({ request, env }) {
       zip_code: form.zipCode,
       number_of_dogs: Number(form.dogCount),
       clean_up_frequency: frequencyMap[form.frequency],
+      last_time_yard_was_thoroughly_cleaned: "one_week",
 
       first_name: form.firstName,
       last_name: form.lastName,
